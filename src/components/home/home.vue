@@ -1,5 +1,17 @@
 <template>
 	<section id="home">
+		<mt-search v-model="q"></mt-search>
+		<ul class="mui-table-view" v-if="isShow">
+			<li class="mui-table-view-cell mui-media" v-for="val in list">
+				<a href="javascript:;">
+					<img class="mui-media-object mui-pull-left" v-bind:src="val.image">
+					<div class="mui-media-body">
+						<p class="mui-ellipsis">{{ val.title }}</p>
+						<p class="">{{ val.summary }}</p>
+					</div>
+				</a>
+			</li>
+		</ul>
 	
 		<!-- 首页轮播图 => 使用mint-ui中的swipe组件 -->
 		<mt-swipe :auto="4000" id="books">
@@ -13,7 +25,8 @@
 					<div class="content">
 						<div>
 							<span>￥{{ val.price}}</span>
-							<h4><<{{ val.title }}>></h4>
+							<h4>
+								<<{{ val.title }}>></h4>
 							<p>{{ val.series.title }}</p>
 							<p>{{ val.publisher }}</p>
 						</div>
@@ -178,6 +191,9 @@ export default {
 	// 类似于箭头函数也省去了function关键字。
 	data() {
 		return {
+			isShow: false,
+			q: '',
+			list: [],
 			lunbos: [],
 			title: '分类浏览',
 			msg: ['小说', '爱情', '历史', '外国文学', '青春', '励志', '随笔', '传记', '推理', '旅行', '奇幻', '经管']
@@ -188,9 +204,32 @@ export default {
 	created() {
 		this.getLunbos();
 	},
-
+	updated() {
+		this.getList();
+	},
 	methods: {
+		//搜索小说
+		getList() {
+			let opt = {
+				params: {
+					'apikey': '00fa6c0654689a0202ef4412fd39ce06'
+				}
+			}
+			var url = 'https://api.douban.com/v2/book/search?q=' + this.q + '&count=8';
+			if (this.q) {
 
+				this.$http.jsonp(url, opt).then((rep) => {
+					if (rep.body.start === 0) {
+						this.isShow = true;
+						this.list = rep.body.books;
+					}
+				})
+			} else {
+				this.isShow = false;
+				return;
+			}
+
+		},
 		// 获取轮播图数据
 		getLunbos() {
 			let opt = {
@@ -198,7 +237,8 @@ export default {
 					'apikey': '00fa6c0654689a0202ef4412fd39ce06'
 				}
 			}
-			var n = Math.ceil(Math.random() * 100);
+			// var n = Math.ceil(Math.random() * 100);
+			var n = 4;
 			var url = 'https://api.douban.com/v2/book/series/' + n + '/books?count=5';
 			this.$http.jsonp(url, opt).then(rep => {
 				if (rep.body.start === 0) {
@@ -212,94 +252,100 @@ export default {
 };
 
 </script>
-
 <style lang="less" rel="stylesheet/less" scoped>
-#books {
-	background-color: #fff;
+	.mint-search {
+	height: 100%;
 }
 
-header h4 {
-	display: inline-block;
-	font-weight: 400;
-}
-
-.fr {
-	float: right;
-}
-
-.swipe-a {
-	display: block;
-	overflow: hidden;
-	margin: 15px 1.12rem 0px;
-}
-
-.mint-swipe {
-	height: 230px;
-}
-
-.mint-swipe img {
-	// float: left;
-	display: inline-block;
-}
-
-
-.content {
-	display: inline-block;
-	width:70%;
-	padding: 0 10px;
-	position:relative;
-	top: -30px;
-	 h4{
-	margin-bottom:30px;
-}
-span {
-	float: right;
-	color: #E76648;
-	font-size: 16px;
-	line-height: 22px
-}
-
-}
-
-.bottom {
-	padding-top: 1.3rem;
-	h3 {
-		padding: 0 1.12rem;
+	.mui-ellipsis {
+		color: red;
 	}
-	.half {
 
-		color: #42bd56;
-		text-align: left;
-		box-sizing: border-box;
-		padding: 0 1rem;
-		.half-r {
+	#books {
+		background-color: #fff;
+	}
+
+	header h4 {
+		display: inline-block;
+		font-weight: 400;
+	}
+
+	.fr {
+		float: right;
+	}
+
+	.swipe-a {
+		display: block;
+		overflow: hidden;
+		margin: 15px 1.12rem 0px;
+	}
+
+	.mint-swipe {
+		height: 230px;
+	}
+
+	.mint-swipe img {
+		// float: left;
+		display: inline-block;
+	}
+
+
+	.content {
+		display: inline-block;
+		width: 70%;
+		padding: 0 10px;
+		position: relative;
+		top: -30px;
+		h4 {
+			margin-bottom: 30px;
+		}
+		span {
 			float: right;
-			width: 3%;
-			font-weight: normal;
-			font-family: Consolas;
-			color: #ccc;
+			color: #E76648;
+			font-size: 16px;
+			line-height: 22px
 		}
 	}
-	.bottom-content {
-		.bottom-a {
-			display: block;
+
+	.bottom {
+		padding-top: 1.3rem;
+		h3 {
+			padding: 0 1.12rem;
 		}
-		.bottom-i-content {
-			margin-left: 0.94rem;
-			>ul {
-				width: 100%;
-				padding: 1.12rem 0 1.88rem;
-				color: #eee;
-				font-size: .9rem;
-				overflow: hidden;
-				>li {
-					float: left;
-					width: 49%;
-					display: inline-block;
-					margin-right: 1%;
+		.half {
+
+			color: #42bd56;
+			text-align: left;
+			box-sizing: border-box;
+			padding: 0 1rem;
+			.half-r {
+				float: right;
+				width: 3%;
+				font-weight: normal;
+				font-family: Consolas;
+				color: #ccc;
+			}
+		}
+		.bottom-content {
+			.bottom-a {
+				display: block;
+			}
+			.bottom-i-content {
+				margin-left: 0.94rem;
+				>ul {
+					width: 100%;
+					padding: 1.12rem 0 1.88rem;
+					color: #eee;
+					font-size: .9rem;
+					overflow: hidden;
+					>li {
+						float: left;
+						width: 49%;
+						display: inline-block;
+						margin-right: 1%;
+					}
 				}
 			}
 		}
 	}
-}
 </style>
